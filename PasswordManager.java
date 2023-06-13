@@ -1,34 +1,45 @@
+/*
+ * Created by Patrick McQuery - 06/12/2023 - CS240 - Spring Quarter
+ * 
+ * A basic password manager, everything is stored in plain text so please do not put your real
+ * information in. Uses a HashMap of LinkedLists to store account information, can handle multiple
+ * accounts for the same website/app. You can add accounts, search for an account, edit accounts,
+ * save your vault, and load your vault. I used https://patorjk.com/software/taag/ to generate the
+ * ASCII text. The font used was Small Slant.
+ */
+
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.Set;
 
 public class PasswordManager {
-    private static LinkedHashMap<String, Account> vault = new LinkedHashMap<String, Account>();
+    private static HashMap<String, LinkedList<Account>> vault =
+            new HashMap<String, LinkedList<Account>>();
 
     public static void main(String[] args) {
-        // PasswordManagerGUI gui = new PasswordManagerGUI();
         boolean running = true;
-        boolean firstTime = true;
         Scanner console = new Scanner(System.in);
+
+        // main program loop
         while (running) {
-            if (firstTime) {
-                printIntro();
-                firstTime = false;
-            }
+            printLogo();
             System.out.println("\nWhat would you like to do?\n");
             System.out.println("[A]dd an entry");
             System.out.println("[S]earch for an entry; to view, remove, or edit");
             System.out.println("[E]xport vault");
             System.out.println("[I]mport vault");
-            System.out.println("[Q]uit\n");
+            System.out.println("[Q]uit password manager\n");
+            // Getting user input, reading the first character in lowercase
             String responseString = console.nextLine();
             char responseChar = responseString.toLowerCase().charAt(0);
+            // switch/case to call the appropriate method depending on what the user wants to do.
             switch (responseChar) {
                 case 'a':
                     add();
@@ -55,9 +66,19 @@ public class PasswordManager {
                     }
                     break;
                 case 'q':
-                    System.out.println("Exiting gracefully.");
+                    System.out.println(
+                            " ________             __                      __  ____      _ __  _                 ");
+                    System.out.println(
+                            "/_  __/ /  ___ ____  / /__  __ _____  __ __  / / / __/_ __ (_) /_(_)__  ___ _       ");
+                    System.out.println(
+                            " / / / _ \\/ _ `/ _ \\/  '_/ / // / _ \\/ // / /_/ / _/ \\ \\ // / __/ / _ \\/ _ `/ _ _ _ ");
+                    System.out.println(
+                            "/_/ /_//_/\\_,_/_//_/_/\\_\\  \\_, /\\___/\\_,_/ (_) /___//_\\_\\/_/\\__/_/_//_/\\_, / (_|_|_)");
+                    System.out.println(
+                            "                          /___/                                       /___/         ");
                     running = false;
                     break;
+                // Any input not recognized generates an error, and the loop repeats
                 default:
                     System.out.println("ERROR: Invalid response given, please try again.");
             }
@@ -66,13 +87,34 @@ public class PasswordManager {
         console.close();
     }
 
-    public static void printIntro() {
-        System.out.println("\n+--------------------------------------------+");
-        System.out.println("| Welcome to my (unsecure) password manager! |");
-        System.out.println("+--------------------------------------------+");
+    // Logo/Main Menu to help user understand where they are in the program
+    public static void printLogo() {
+        System.out.println(
+                "   ___       __      _     __  _        __  __                                ___                                 __                                   ");
+        System.out.println(
+                "  / _ \\___ _/ /_____(_)___/ /_( )___   / / / /__  ___ ___ ______ _________   / _ \\___ ____ ____    _____  _______/ / __ _  ___ ____  ___ ____ ____ ____");
+        System.out.println(
+                " / ___/ _ `/ __/ __/ / __/  '_//(_-<  / /_/ / _ \\(_-</ -_) __/ // / __/ -_) / ___/ _ `(_-<(_-< |/|/ / _ \\/ __/ _  / /  ' \\/ _ `/ _ \\/ _ `/ _ `/ -_) __/");
+        System.out.println(
+                "/_/   \\_,_/\\__/_/ /_/\\__/_/\\_\\ /___/  \\____/_//_/___/\\__/\\__/\\_,_/_/  \\__/ /_/   \\_,_/___/___/__,__/\\___/_/  \\_,_/ /_/_/_/\\_,_/_//_/\\_,_/\\_, /\\__/_/   ");
+        System.out.println(
+                "                                                                                                                                        /___/          ");
+
+
+        System.out.println("   __  ___     _        __  ___             ");
+        System.out.println("  /  |/  /__ _(_)__    /  |/  /__ ___  __ __");
+        System.out.println(" / /|_/ / _ `/ / _ \\  / /|_/ / -_) _ \\/ // /");
+        System.out.println("/_/  /_/\\_,_/_/_//_/ /_/  /_/\\__/_//_/\\_,_/ ");
+
     }
 
+    // Add method for user input
     public static void add() {
+        System.out.println("   ___     __   __  ____     __          ");
+        System.out.println("  / _ |___/ /__/ / / __/__  / /_______ __");
+        System.out.println(" / __ / _  / _  / / _// _ \\/ __/ __/ // /");
+        System.out.println("/_/ |_\\_,_/\\_,_/ /___/_//_/\\__/_/  \\_, / ");
+        System.out.println("                                  /___/  ");
         Scanner console = new Scanner(System.in);
         Account tempAccount;
         System.out.print("Website/Application Name: ");
@@ -92,10 +134,34 @@ public class PasswordManager {
             tempAccount = new Account(appName, username, password, notes);
         }
         while (!confirm(tempAccount));
-        vault.put(tempAccount.getAppName(), tempAccount);
+        if (vault.containsKey(tempAccount.getAppName())) {
+            LinkedList<Account> accounts = vault.get(tempAccount.getAppName());
+            accounts.add(tempAccount);
+            vault.put(tempAccount.getAppName(), accounts);
+        } else {
+            LinkedList<Account> accounts = new LinkedList<Account>();
+            accounts.add(tempAccount);
+            vault.put(tempAccount.getAppName(), accounts);
+        }
 
     }
 
+    // add method for internal use
+    public static void add(String appName, String username, String password, String notes) {
+        Account tempAccount = new Account(appName, username, password, notes);
+        if (vault.containsKey(tempAccount.getAppName())) {
+            LinkedList<Account> accounts = vault.get(tempAccount.getAppName());
+            accounts.add(tempAccount);
+            vault.put(tempAccount.getAppName(), accounts);
+        } else {
+            LinkedList<Account> accounts = new LinkedList<Account>();
+            accounts.add(tempAccount);
+            vault.put(tempAccount.getAppName(), accounts);
+        }
+    }
+
+    // Confirm whether the information is correct, if not, edit the account and loop until the user
+    // is satisfied
     public static boolean confirm(Account account) {
         account.unHide();
         System.out.println("\n" + account.getString() + "\n\nIs this information correct?"
@@ -111,19 +177,66 @@ public class PasswordManager {
         return true;
     }
 
+    // Search for an account with user input
     public static void search() {
+        System.out.println("   ____                 __ ");
+        System.out.println("  / __/__ ___ _________/ / ");
+        System.out.println(" _\\ \\/ -_) _ `/ __/ __/ _ \\");
+        System.out.println("/___/\\__/\\_,_/_/  \\__/_//_/");
+
+
+
         System.out.println(
                 "\nTo search for your account, please enter the website or application name.\n");
+
+        System.out.println("Accounts found for these websites/applications:");
+        Set<String> keys = vault.keySet();
+        for (String key : keys) {
+            LinkedList<Account> accounts = vault.get(key);
+            if (accounts != null && accounts.size() > 0) {
+                System.out.println(key);
+            }
+        }
+        System.out.println();
         Scanner console = new Scanner(System.in);
         String appName = console.nextLine();
-        Account found = vault.get(appName);
-        if (found == null) {
-            System.out.println("\nERROR: Account not found.");
+        LinkedList<Account> found = vault.get(appName);
+        // If the user inputted app name does not exist we exit the method
+        if (found == null || found.size() == 0) {
+            System.out.println("ERROR: Account not found.");
             return;
         }
+        int choice = 0;
+        Account foundAccount;
+        if (found.size() > 1) {
+            System.out.println("\nMultiple accounts found for " + appName
+                    + ".\nWhich one would you like to access?\n");
+            for (Account account : found) {
+                System.out.println(account.getUsername());
+            }
+            System.out.println("\nPlease enter the username correctly.\n");
+            String username = console.nextLine();
+            for (Account account : found) {
+                if (account.getUsername().equals(username)) {
+                    break;
+                } else {
+                    choice++;
+                }
+            }
+        }
+        foundAccount = found.get(choice);
+        // Once the account is found the user has multiple options
         boolean accounting = true;
         while (accounting) {
-            System.out.println("\n" + found.getString());
+            System.out.println("   ___                         __    ____                  __");
+            System.out.println("  / _ |___________  __ _____  / /_  / __/__  __ _____  ___/ /");
+            System.out.println(" / __ / __/ __/ _ \\/ // / _ \\/ __/ / _// _ \\/ // / _ \\/ _  / ");
+            System.out.println(
+                    "/_/ |_\\__/\\__/\\___/\\_,_/_//_/\\__/ /_/  \\___/\\_,_/_//_/\\_,_/  ");
+
+
+
+            System.out.println("\n" + foundAccount.getString());
             System.out.println("\nWhat would you like to do with this account?\n");
             System.out.println("[S]how password");
             System.out.println("[H]ide password");
@@ -136,32 +249,27 @@ public class PasswordManager {
             char responseChar = responseString.toLowerCase().charAt(0);
             switch (responseChar) {
                 case 's':
-                    found.unHide();
+                    foundAccount.unHide();
                     break;
                 case 'h':
-                    found.hide();
+                    foundAccount.hide();
                     break;
                 case 'e':
-                    edit(found);
+                    edit(foundAccount);
                     break;
                 case 'u':
-                    copyUsername(found);
+                    copyUsername(foundAccount);
                     break;
                 case 'p':
-                    copyPassword(found);
+                    copyPassword(foundAccount);
                     break;
                 case 'd':
-                    if (vault.remove(found.getAppName(), found)) {
-                        System.out.println("\nAccount deleted successfully.");
-                        accounting = false;
-                    } else {
-                        System.out.println("There was a problem deleting this account.");
-                    }
-
+                    found.remove(choice);
+                    accounting = false;
                     break;
                 case 'q':
                     accounting = false;
-                    found.hide();
+                    foundAccount.hide();
                     break;
                 default:
                     System.out.println("ERROR: Invalid response given, please try again.");
@@ -169,19 +277,31 @@ public class PasswordManager {
         }
     }
 
+    // Copy username to clipboard
     public static void copyUsername(Account account) {
         Toolkit.getDefaultToolkit().getSystemClipboard()
                 .setContents(new StringSelection(account.getUsername()), null);
 
     }
 
+    // Copy password to clipboard
     public static void copyPassword(Account account) {
         Toolkit.getDefaultToolkit().getSystemClipboard()
                 .setContents(new StringSelection(account.getPassword()), null);
 
     }
 
+    // Edit account with user input
     public static void edit(Account account) {
+        System.out.println("   ____   ___ __  _             ___                         __ ");
+        System.out.println("  / __/__/ (_) /_(_)__  ___ _  / _ |___________  __ _____  / /_");
+        System.out.println(" / _// _  / / __/ / _ \\/ _ `/ / __ / __/ __/ _ \\/ // / _ \\/ __/");
+        System.out
+                .println("/___/\\_,_/_/\\__/_/_//_/\\_, / /_/ |_\\__/\\__/\\___/\\_,_/_//_/\\__/ ");
+        System.out.println("                      /___/                                    ");
+
+
+
         account.unHide();
         boolean editing = true;
         while (editing) {
@@ -195,9 +315,24 @@ public class PasswordManager {
             String responseString = console.nextLine();
             char responseChar = responseString.toLowerCase().charAt(0);
             switch (responseChar) {
+                // Due to how the accounts are stored, if the user wishes to change the app name
+                // we must delete the old account entry and create a new one with th updated name
                 case 'a':
                     System.out.print("Website/Application Name: ");
+                    String oldAppName = account.getAppName();
                     account.setAppName(console.nextLine());
+                    LinkedList<Account> accounts = vault.get(oldAppName);
+                    int i = 0;
+                    for (Account tempAccount : accounts) {
+                        if (tempAccount.getUsername().equals(account.getUsername())) {
+                            accounts.remove(i);
+                            break;
+                        } else {
+                            i++;
+                        }
+                    }
+                    add(account.getAppName(), account.getUsername(), account.getPassword(),
+                            account.getNotes());
                     break;
                 case 'u':
                     System.out.print("Username: ");
@@ -221,18 +356,23 @@ public class PasswordManager {
         }
     }
 
+    // Writes all account information into a plain text file for later use.
     public static void exportVault() throws IOException {
         System.out.println("\nWhat file would you like to save to?\n");
         Scanner console = new Scanner(System.in);
         BufferedWriter writer = new BufferedWriter(new FileWriter(console.nextLine()));
         Set<String> keys = vault.keySet();
         for (String key : keys) {
-            vault.get(key).unHide();
-            writer.append(vault.get(key).getCSVString() + ",");
+            LinkedList<Account> accounts = vault.get(key);
+            for (Account account : accounts) {
+                account.unHide();
+                writer.append(account.getCSVString() + ",");
+            }
         }
         writer.close();
     }
 
+    // Imports account information that was previously saved by the user.
     public static void importVault() throws IOException {
         System.out.println("\nWhat file would you like to open?\n");
         Scanner console = new Scanner(System.in);
@@ -244,7 +384,7 @@ public class PasswordManager {
             String username = scanner.next();
             String password = scanner.next();
             String notes = scanner.next();
-            vault.put(appName, new Account(appName, username, password, notes));
+            add(appName, username, password, notes);
         }
         scanner.close();
     }
